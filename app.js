@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const userModel = require("./models/userModel");
+const postModel = require("./models/postModel");
 
 const express = require("express");
 const cookieParser = require("cookie-parser");
@@ -14,6 +15,19 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
+
+const verifyToken = (req, res, next) => {
+  const token = req.cookies.token;
+  if (!token) return res.status(401).send("Access Denied");
+  try {
+    const verified = jwt.verify(token, "mysecretkey");
+    console.log(verified);
+    req.user = verified;
+    next();
+  } catch (err) {
+    return res.status(400).send("Invalid Token");
+  }
+};
 
 app.get("/", (req, res) => {
   res.render("index");
@@ -69,8 +83,15 @@ app.post("/auth/signin", async (req, res) => {
   }
 
   res.cookie("token", token, { httpOnly: true });
+  res.redirect("/profile");
+});
+
+app.get("/auth/signout", (req, res) => {
+  res.clearCookie("token");
   res.redirect("/");
 });
+
+
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
