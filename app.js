@@ -91,7 +91,10 @@ app.get("/auth/signout", (req, res) => {
   res.redirect("/");
 });
 
-
+app.get("/profile", verifyToken, async (req, res) => {
+  const user = await userModel.findById(req.user.userId);
+  res.render("profile", { user });
+});
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
