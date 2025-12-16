@@ -32,7 +32,7 @@ app.use(cookieParser());
 // ======================
 const verifyToken = (req, res, next) => {
   const token = req.cookies.token;
-  if (!token) return res.status(401).send("Access Denied");
+  if (!token) return res.status(401).render("");
   try {
     const verified = jwt.verify(token, "mysecretkey");
     req.user = verified;
@@ -308,6 +308,20 @@ app.post("/posts/:id/like", verifyToken, async (req, res) => {
     liked: !hasLiked,
     likesCount: updatedPost.likes.length,
   });
+});
+
+app.get("/home", verifyToken, async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user.userId);
+    const posts = await postModel
+      .find()
+      .sort({ createdAt: -1 })
+      .populate("author", "username name image")
+      .lean();
+    res.render("home", { posts, user, dayjs });
+  } catch (error) {
+    res.status(500).send("Server Error");
+  }
 });
 
 // ======================
