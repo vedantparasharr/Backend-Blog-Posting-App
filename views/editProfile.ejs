@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Edit profile • <%= user.username %></title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+
+  <body class="min-h-screen bg-zinc-900 text-white">
+    <main class="max-w-3xl mx-auto px-6 py-10">
+      <!-- Header -->
+      <header class="flex items-center justify-between mb-8">
+        <h1 class="text-2xl font-semibold tracking-tight">Edit profile</h1>
+
+        <a
+          href="/profile"
+          class="px-3 py-2 rounded-lg text-sm border border-zinc-700 hover:bg-zinc-800"
+        >
+          Cancel
+        </a>
+      </header>
+
+      <!-- Form -->
+      <section class="bg-zinc-800/60 p-6 rounded-2xl shadow-sm">
+        <form
+          action="/profile/edit"
+          method="POST"
+          class="space-y-4"
+          autocomplete="off"
+          novalidate
+        >
+          <!-- Name -->
+          <div>
+            <label class="block text-sm mb-1 text-zinc-300">Full name</label>
+            <input
+              type="text"
+              name="name"
+              value="<%= user.name || '' %>"
+              class="w-full px-3 py-2 rounded-lg bg-zinc-900/40 border border-zinc-700 outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <!-- Username -->
+          <div>
+            <label class="block text-sm mb-1 text-zinc-300">Username</label>
+            <input
+              type="text"
+              name="username"
+              value="<%= user.username || '' %>"
+              class="w-full px-3 py-2 rounded-lg bg-zinc-900/40 border border-zinc-700 outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p class="text-xs text-zinc-500 mt-1">
+              This is how others will find you.
+            </p>
+          </div>
+
+          <!-- Bio -->
+          <div>
+            <label class="block text-sm mb-1 text-zinc-300">Bio</label>
+            <textarea
+              name="bio"
+              rows="3"
+              maxlength="120"
+              class="w-full px-3 py-2 rounded-lg bg-zinc-900/40 border resize-none border-zinc-700 outline-none focus:ring-2 focus:ring-blue-500"
+            ><%= user.bio || '' %></textarea>
+            <p class="text-xs text-zinc-500 mt-1">Max 120 characters.</p>
+          </div>
+
+          <!-- Image -->
+          <div>
+            <label for="image" class="block text-sm mb-1 text-zinc-300"
+              >Profile image URL</label
+            >
+            <input
+              id="image"
+              name="image"
+              type="text"
+              value="<%= user.image || '' %>"
+              class="w-full px-3 py-2 rounded-lg bg-zinc-900/40 border border-zinc-700 outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <div class="mt-3 flex items-center gap-4">
+              <div class="w-20 h-20 rounded-lg overflow-hidden bg-zinc-700">
+                <img
+                  id="previewImage"
+                  src="<%= user.image || '/images/default-avatar.png' %>"
+                  alt="preview"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              <div class="text-xs text-zinc-500">
+                Paste a direct image URL to preview.
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-3 pt-2">
+            <button
+              type="submit"
+              class="px-5 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-sm font-medium hover:opacity-95"
+            >
+              Save changes
+            </button>
+
+            <a
+              href="/profile"
+              class="px-4 py-2 rounded-lg border border-zinc-700 text-sm hover:bg-zinc-800"
+            >
+              Back
+            </a>
+          </div>
+        </form>
+      </section>
+
+      <!-- Footer -->
+      <footer class="mt-12 text-xs text-zinc-500">
+        Changes affect how your profile appears publicly.
+      </footer>
+    </main>
+    <script>
+      (function () {
+        const imageInput = document.getElementById('image');
+        const preview = document.getElementById('previewImage');
+
+        imageInput.addEventListener('input', function () {
+          const url = imageInput.value.trim();
+          if (url) preview.src = url;
+          else preview.src = '/images/default-avatar.png';
+        });
+      })();
+    </script>
+  </body>
+</html>
