@@ -2,6 +2,7 @@
 // Imports & Dependencies
 // ======================
 const dayjs = require("dayjs");
+const crypto = require("crypto");
 const path = require("path");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -11,6 +12,7 @@ const postModel = require("./models/postModel");
 
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const { randomUUID } = require("crypto");
 
 // ======================
 // App Initialization
@@ -32,7 +34,11 @@ app.use(cookieParser());
 // ======================
 const verifyToken = (req, res, next) => {
   const token = req.cookies.token;
-  if (!token) return res.status(401).render("");
+  if (!token)
+    return res.status(401).render("authRequired", {
+      title: "Sign in required!",
+      message: "Please Sign in or continue as guest",
+    });
   try {
     const verified = jwt.verify(token, "mysecretkey");
     req.user = verified;
@@ -71,6 +77,19 @@ app.post("/createUser", async (req, res) => {
   res.cookie("token", token, { httpOnly: true });
 
   res.redirect("/profile");
+});
+
+app.get("/createguest", async (req, res) => {
+  const randomId = crypto.randomUUID();
+  const token = jwt.sign(
+    {
+      data: randomId,
+    },
+    "mysecretkey",
+    { expiresIn: "1h" }
+  );
+  res.cookie("token", token, { httpOnly: true });
+  res.redirect("/home");
 });
 
 app.get("/auth/signin", (req, res) => {
