@@ -3,20 +3,22 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Home • Feed</title>
+    <title>Home • Relm</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   </head>
 
   <body class="min-h-screen bg-zinc-900 text-white">
     <main class="max-w-5xl mx-auto px-4 md:px-6 py-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+      
 
       <!-- Feed (left/middle, spans 2 cols on desktop) -->
       <section class="md:col-span-2 space-y-6">
 
         <!-- Top bar -->
         <div class="flex items-center justify-between mb-2">
-          <h1 class="text-2xl font-semibold">Home</h1>
-
+            <a href="/home" class="text-2xl font-semibold tracking-tight inline-block mb-4">
+              <span class="text-blue-400">R</span>elm
+            </a>
           <div class="flex items-center gap-3">
             <% if (user) { %>
               <a href="/profile" class="text-sm px-3 py-2 rounded-lg border border-zinc-700 hover:bg-zinc-800">

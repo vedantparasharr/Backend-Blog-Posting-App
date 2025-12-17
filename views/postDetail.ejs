@@ -4,8 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>
-      <%= post.title %> • <%= post.author.username || post.author.name ||
-      'Author' %>
+      <%= post.title %> • Relm
     </title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="/style.css" />
@@ -13,6 +12,9 @@
 
   <body class="min-h-screen bg-zinc-900 text-white">
     <main class="max-w-3xl mx-auto px-6 py-10">
+                <a href="/home" class="text-2xl font-semibold tracking-tight inline-block mb-4">
+        <span class="text-blue-400">R</span>elm
+      </a>
       <!-- Back -->
       <div class="mb-6">
         <a href="/profile" class="text-sm text-zinc-400 hover:text-white"
