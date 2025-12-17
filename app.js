@@ -1,12 +1,15 @@
 // ======================
 // Imports & Dependencies
 // ======================
+require("dotenv").config();
+
 const dayjs = require("dayjs");
 const crypto = require("crypto");
 const path = require("path");
 const fs = require("fs");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+
 
 const userModel = require("./models/userModel");
 const postModel = require("./models/postModel");
@@ -42,7 +45,7 @@ const verifyToken = (req, res, next) => {
       message: "Please Sign in or continue as guest",
     });
   try {
-    const verified = jwt.verify(token, "mysecretkey");
+    const verified = jwt.verify(token, process.env.JWT_SECRET);
     req.user = verified;
     next();
   } catch (err) {
@@ -75,7 +78,7 @@ app.post("/createUser", upload.single("image"), async (req, res) => {
     image: req.file ? req.file.filename : undefined,
   });
 
-  const token = jwt.sign({ email: email, userId: newUser._id }, "mysecretkey");
+  const token = jwt.sign({ email: email, userId: newUser._id }, process.env.JWT_SECRET);
   res.cookie("token", token, { httpOnly: true });
 
   res.redirect("/profile");
@@ -87,7 +90,7 @@ app.get("/createguest", async (req, res) => {
     {
       data: randomId,
     },
-    "mysecretkey",
+    process.env.JWT_SECRET,
     { expiresIn: "1h" }
   );
   res.cookie("token", token, { httpOnly: true });
@@ -110,9 +113,9 @@ app.post("/auth/signin", async (req, res) => {
 
   let token;
   if (remember) {
-    token = jwt.sign({ email: email, userId: user._id }, "mysecretkey");
+    token = jwt.sign({ email: email, userId: user._id }, process.env.JWT_SECRET);
   } else {
-    token = jwt.sign({ email: email, userId: user._id }, "mysecretkey", {
+    token = jwt.sign({ email: email, userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
   }
@@ -130,7 +133,18 @@ app.get("/auth/signout", (req, res) => {
 // Profile Routes
 // ======================
 app.get("/profile", verifyToken, async (req, res) => {
+  if (!req.user.userId) {
+    return res.render("authRequired", {
+      title: "Profile Unavailable",
+      message: "Guest accounts do not have profiles. Sign in to continue.",
+    });
+  }
+
   const user = await userModel.findById(req.user.userId);
+  if (!user) {
+    return res.redirect("/auth/signin");
+  }
+
   const posts = await postModel
     .find({ author: user._id })
     .populate("author")
@@ -244,7 +258,7 @@ app.post(
     user.username = username;
     user.dateOfBirth = dateOfBirth;
     user.website = website;
-    user.bio;
+    user.bio = bio;
     if (req.file) {
       user.image = req.file.filename;
     }
