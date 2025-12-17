@@ -4,6 +4,7 @@
 const dayjs = require("dayjs");
 const crypto = require("crypto");
 const path = require("path");
+const fs = require("fs");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -71,7 +72,7 @@ app.post("/createUser", upload.single("image"), async (req, res) => {
     email,
     password: hashedPassword,
     dateOfBirth,
-    image : req.file? req.file.filename : undefined
+    image: req.file ? req.file.filename : undefined,
   });
 
   const token = jwt.sign({ email: email, userId: newUser._id }, "mysecretkey");
@@ -156,19 +157,32 @@ app.get("/profile/edit", verifyToken, async (req, res) => {
   res.render("editProfile", { user, dayjs });
 });
 
-app.post("/profile/edit", verifyToken, async (req, res) => {
-  const { name, username, image, bio } = req.body;
+app.post(
+  "/profile/edit",
+  verifyToken,
+  upload.single("image"),
+  async (req, res) => {
+    const { name, username, bio } = req.body;
+    const user = await userModel.findById(req.user.userId);
+    if (!user) return res.status(404).send("User not found");
+    if (req.file && user.image && user.image !== "default-avatar.png") {
+      fs.rm(
+        path.join(__dirname, "public", "images", "uploads", user.image),
+        (err) => {
+          if (err) console.log(err);
+        }
+      );
+    }
 
-  const user = await userModel.findByIdAndUpdate(req.user.userId, {
-    name,
-    username,
-    image,
-    bio,
-  });
+    user.name = name?.trim();
+    user.username = username?.trim();
+    user.bio = bio?.trim();
+    if (req.file) user.image = req.file.filename;
+    await user.save();
 
-  if (!user) return res.status(404).send("User not found");
-  res.redirect("/profile");
-});
+    res.redirect("/profile");
+  }
+);
 
 // ======================
 // Profile Settings Routes
@@ -180,57 +194,64 @@ app.get("/profile/settings", verifyToken, async (req, res) => {
   res.render("settings", { user, dayjs });
 });
 
-app.post("/profile/settings", verifyToken, async (req, res) => {
-  const {
-    name,
-    username,
-    dateOfBirth,
-    website,
-    image,
-    bio,
-    currentPassword,
-    newPassword,
-    confirmPassword,
-  } = req.body;
-
-  let hashedNewPassword;
-
-  const user = await userModel.findById(req.user.userId);
-  if (!user) return res.status(404).send("User not found");
-
-  const isUserChangingPassword =
-    currentPassword || newPassword || confirmPassword;
-
-  if (isUserChangingPassword) {
-    const isPasswordValid = await bcrypt.compare(
+app.post(
+  "/profile/settings",
+  verifyToken,
+  upload.single("image"),
+  async (req, res) => {
+    const {
+      name,
+      username,
+      dateOfBirth,
+      website,
+      bio,
       currentPassword,
-      user.password
-    );
-    if (!isPasswordValid)
-      return res.status(400).send("Current password is incorrect");
+      newPassword,
+      confirmPassword,
+    } = req.body;
 
-    if (newPassword !== confirmPassword)
-      return res.status(400).send("New passwords do not match");
+    const user = await userModel.findById(req.user.userId);
+    if (!user) return res.status(404).send("User not found");
 
-    hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    let hashedNewPassword;
+    const isUserChangingPassword =
+      currentPassword || newPassword || confirmPassword;
+
+    if (isUserChangingPassword) {
+      const isPasswordValid = await bcrypt.compare(
+        currentPassword,
+        user.password
+      );
+      if (!isPasswordValid)
+        return res.status(400).send("Current password is incorrect");
+
+      if (newPassword !== confirmPassword)
+        return res.status(400).send("New passwords do not match");
+
+      user.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    if (req.file && user.image && user.image !== "default-avatar.png") {
+      fs.rm(
+        path.join(__dirname, "public", "images", "uploads", user.image),
+        (err) => {
+          if (err) console.log(err);
+        }
+      );
+    }
+
+    user.name = name;
+    user.username = username;
+    user.dateOfBirth = dateOfBirth;
+    user.website = website;
+    user.bio;
+    if (req.file) {
+      user.image = req.file.filename;
+    }
+    await user.save();
+    res.redirect("/profile");
   }
-
-  const updateData = {
-    name,
-    username,
-    dateOfBirth,
-    website,
-    image,
-    bio,
-  };
-
-  if (isUserChangingPassword) {
-    updateData.password = hashedNewPassword;
-  }
-
-  await userModel.findByIdAndUpdate(req.user.userId, updateData);
-  res.redirect("/profile");
-});
+);
 
 // ======================
 // Post Routes
