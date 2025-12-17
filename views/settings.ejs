@@ -53,6 +53,7 @@
             <label class="text-sm text-zinc-300">Profile picture</label>
             <label
               for="image"
+              id="imageLabel"
               class="w-24 h-24 rounded-full bg-zinc-700/60 flex items-center justify-center cursor-pointer hover:bg-zinc-600 transition"
             >
               <span class="text-xs text-zinc-300">Upload</span>
@@ -241,17 +242,24 @@
     </main>
 
     <script>
+      const input = document.getElementById("image");
+      const label = document.getElementById("imageLabel");
+
+      input.addEventListener("change", () => {
+        const file = input.files[0];
+        if (!file) return;
+
+        const url = URL.createObjectURL(file);
+        label.style.backgroundImage = `url(${url})`;
+        label.style.backgroundSize = "cover";
+        label.style.backgroundPosition = "center";
+        label.textContent = "";
+      });
+
+
       (function () {
-        const imageInput = document.getElementById("image");
-        const preview = document.getElementById("previewImage");
         const bioEl = document.getElementById("bio");
         const bioCount = document.getElementById("bioCount");
-
-        imageInput.addEventListener("input", function () {
-          const url = imageInput.value.trim();
-          if (url) preview.src = url;
-          else preview.src = "default-avatar.png";
-        });
 
         function updateBioCount() {
           const len = bioEl.value ? bioEl.value.length : 0;
