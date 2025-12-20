@@ -76,7 +76,7 @@
                       </div>
 
                       <div class="text-xs text-zinc-500">
-                        <%= post.createdAt ? dayjs(post.createdAt).format('DD MMM YYYY') : '' %>
+                  <%= dayjs(post.createdAt).format("DD MMM • HH:mm") %>
                       </div>
                     </div>
 

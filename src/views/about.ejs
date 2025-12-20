@@ -127,7 +127,7 @@
               <a href="/posts/<%= post._id %>" class="block">
                 <h4 class="font-medium text-zinc-100"><%= post.title %></h4>
                 <div class="text-xs text-zinc-400 mt-1">
-                  <%= post.createdAt ? dayjs(post.createdAt).format('DD MMM YYYY HH:mm') : '-' %>
+                  <%= dayjs(post.createdAt).format("DD MMM • HH:mm") %>
                 </div>
                 <p class="text-sm text-zinc-300 mt-2">
                   <% 

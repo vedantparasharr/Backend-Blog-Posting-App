@@ -1,5 +1,21 @@
 const mongoose = require("mongoose");
 
+const commentSchema = mongoose.Schema(
+  {
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    content: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+  },
+  { timestamps: true }
+);
+
 const postSchema = mongoose.Schema(
   {
     author: {
@@ -23,6 +39,7 @@ const postSchema = mongoose.Schema(
         ref: "User",
       },
     ],
+    comments: [commentSchema],
   },
   { timestamps: true }
 );

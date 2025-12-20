@@ -315,10 +315,23 @@ app.get("/posts/:id", verifyToken, async (req, res) => {
   const post = await postModel
     .findById(req.params.id)
     .populate("author")
-    .populate("likes");
+    .populate("likes")
+    .populate("comments.author");
 
   const user = await userModel.findById(req.user.userId);
   res.render("postDetail", { post, user, dayjs });
+});
+
+app.post("/posts/:id/comments", verifyToken, async (req, res) => {
+  const { content } = req.body;
+  const post = await postModel.findById(req.params.id);
+
+  post.comments.push({
+    author: req.user.userId,
+    content,
+  });
+  await post.save();
+  res.redirect(`/posts/${post._id}`);
 });
 
 app.get("/posts/:id/edit", verifyToken, async (req, res) => {
