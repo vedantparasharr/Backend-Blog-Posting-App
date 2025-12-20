@@ -129,7 +129,7 @@
                 <div class="text-xs text-zinc-400 mt-1">
                   <%= dayjs(post.createdAt).format("DD MMM • HH:mm") %>
                 </div>
-                <p class="text-sm text-zinc-300 mt-2">
+                <p class="text-sm text-zinc-300 mt-2 whitespace-pre-line">
                   <% 
                     var preview = post.content ? String(post.content) : '';
                     var snippet = preview.length > 180 ? preview.substring(0, 180) + '...' : preview;

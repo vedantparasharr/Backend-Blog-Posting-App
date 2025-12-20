@@ -85,7 +85,7 @@
               <%= post.title %>
             </h2>
 
-            <p class="text-sm text-zinc-400 mb-4">
+            <p class="text-sm text-zinc-400 mb-4 whitespace-pre-line">
               <% const preview = post.content ? String(post.content) : ''; const
               short = preview.length > 230 ? preview.substring(0,230) + '...' :
               preview; %> <%= short %>

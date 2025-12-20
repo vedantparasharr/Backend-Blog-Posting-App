@@ -18,6 +18,7 @@ const uploadToSupabase = require("./utils/uploadToSupabase");
 
 const userModel = require("./models/userModel");
 const postModel = require("./models/postModel");
+const { stringify } = require("querystring");
 
 // ======================
 // App Initialization
@@ -333,6 +334,28 @@ app.post("/posts/:id/comments", verifyToken, async (req, res) => {
   await post.save();
   res.redirect(`/posts/${post._id}`);
 });
+
+app.get(
+  "/posts/:postId/:comments/:commentId/delete",
+  verifyToken,
+  async (req, res) => {
+    try {
+      const { postId, commentId } = req.params;
+      const post = await postModel.findById(postId);
+      if (!post) return res.status(404).send("Post not found");
+      const comment = post.comments.id(commentId);
+      if (!comment) return res.status(404).send("Comment not found");
+      if (comment.author.toString() !== req.user.userId.toString())
+        return res.status(404).send("Not authorised");
+      post.comments.pull(commentId);
+      await post.save();
+      res.redirect(`/posts/${postId}`);
+    } catch (error) {
+      console.error(err);
+      res.status(500).send("Server error");
+    }
+  }
+);
 
 app.get("/posts/:id/edit", verifyToken, async (req, res) => {
   const post = await postModel.findById(req.params.id);
