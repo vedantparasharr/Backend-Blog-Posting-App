@@ -3,21 +3,21 @@
 // ======================
 require("dotenv").config();
 
-const dayjs = require("dayjs");
-const crypto = require("crypto");
 const path = require("path");
-const fs = require("fs");
+const crypto = require("crypto");
+
+const dayjs = require("dayjs");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+
+const express = require("express");
+const cookieParser = require("cookie-parser");
+
+const upload = require("./config/multer");
 const uploadToSupabase = require("./utils/uploadToSupabase");
 
 const userModel = require("./models/userModel");
 const postModel = require("./models/postModel");
-const upload = require("./config/multer");
-
-const express = require("express");
-const cookieParser = require("cookie-parser");
-const { randomUUID } = require("crypto");
 
 // ======================
 // App Initialization
@@ -28,8 +28,9 @@ const app = express();
 // App Configuration
 // ======================
 app.set("view engine", "ejs");
-app.use(express.static(path.join(__dirname, "public")));
 app.set("views", path.join(__dirname, "views"));
+
+app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
@@ -39,15 +40,17 @@ app.use(cookieParser());
 // ======================
 const verifyToken = (req, res, next) => {
   const token = req.cookies.token;
-  if (!token)
+
+  if (!token) {
     return res.status(401).render("authRequired", {
       title: "Sign in required!",
       message: "Please Sign in or continue as guest",
     });
+  }
+
   try {
-    const verified = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = verified;
-    next();
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    return next();
   } catch (err) {
     res.clearCookie("token");
     return res.status(401).render("authRequired", {
@@ -79,7 +82,7 @@ app.post("/createUser", upload.single("image"), async (req, res) => {
   const imageUrl = req.file ? await uploadToSupabase(req.file) : undefined;
 
   const newUser = await userModel.create({
-    username: username.trim().toLowerCase(),
+    username: normalizedUsername,
     name,
     email,
     password: hashedPassword,
@@ -248,7 +251,6 @@ app.post(
     const user = await userModel.findById(req.user.userId);
     if (!user) return res.status(404).send("User not found");
 
-    let hashedNewPassword;
     const isUserChangingPassword =
       currentPassword || newPassword || confirmPassword;
 

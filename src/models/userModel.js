@@ -8,7 +8,7 @@ const userSchema = mongoose.Schema(
       lowercase: true,
       required: true,
       unique: true,
-      trim: true
+      trim: true,
     },
     name: String,
     email: String,
@@ -22,7 +22,8 @@ const userSchema = mongoose.Schema(
     },
     image: {
       type: String,
-      default: "https://raw.githubusercontent.com/vedantparasharr/Relm/refs/heads/main/public/images/uploads/default-avatar.png",
+      default:
+        "https://raw.githubusercontent.com/vedantparasharr/Relm/refs/heads/main/src/public/images/uploads/default-avatar.png",
     },
     posts: [
       {
