@@ -15,6 +15,7 @@ const cookieParser = require("cookie-parser");
 
 const upload = require("./config/multer");
 const uploadToSupabase = require("./utils/uploadToSupabase");
+const sendOTPEmail = require("./utils/sendOTPEmail");
 
 const userModel = require("./models/userModel");
 const postModel = require("./models/postModel");
@@ -38,6 +39,7 @@ app.use(cookieParser());
 // ======================
 // Authentication Middleware
 // ======================
+
 const verifyToken = (req, res, next) => {
   const token = req.cookies.token;
 
@@ -70,6 +72,7 @@ app.get("/", (req, res) => {
 // ======================
 // Authentication Routes
 // ======================
+
 app.post("/createUser", upload.single("image"), async (req, res) => {
   const { username, name, email, password, dateOfBirth } = req.body;
   const normalizedUsername = username.trim().toLowerCase();
@@ -81,7 +84,7 @@ app.post("/createUser", upload.single("image"), async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const imageUrl = req.file ? await uploadToSupabase(req.file) : undefined;
 
-  const newUser = await userModel.create({
+  const user = await userModel.create({
     username: normalizedUsername,
     name,
     email,
@@ -90,11 +93,36 @@ app.post("/createUser", upload.single("image"), async (req, res) => {
     image: imageUrl,
   });
 
+  if (!user.verified) {
+    await sendOTPEmail(user);
+    return res.render("verify", { user: user._id });
+  }
+});
+
+app.post("/verify-email", async (req, res) => {
+  const { userId, code } = req.body;
+
+  const user = await userModel.findById(userId);
+  if (!user) return res.status(404).send("User not found");
+
+  if (!user.expireOTP || user.expireOTP < Date.now()) {
+    return res.status(400).send("OTP Expired");
+  }
+
+  const isValid = await bcrypt.compare(code, user.hashOTP);
+  if (!isValid) return res.status(400).send("Invalid OTP");
+
+  user.verified = true;
+  user.hashOTP = undefined;
+  user.expireOTP = undefined;
+  await user.save();
+
   const token = jwt.sign(
-    { email: email, userId: newUser._id },
+    { email: user.email, userId: user._id },
     process.env.JWT_SECRET,
     { expiresIn: "30d" }
   );
+
   res.cookie("token", token, {
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000,
@@ -136,6 +164,11 @@ app.post("/auth/signin", async (req, res) => {
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid)
     return res.status(400).send("Invalid email or password");
+
+  if (!user.verified) {
+    await sendOTPEmail(user);
+    return res.render("verify", { user: user._id });
+  }
 
   let token;
   if (remember) {
