@@ -99,7 +99,7 @@ const sendOTPEmail = async (user) => {
   await apiInstance.sendTransacEmail({
     sender: {
       name: "Relm",
-      email: "iemvedant@gmail.com", // must be a verified sender in Brevo
+      email: "iemvedant@gmail.com",
     },
     to: [
       {

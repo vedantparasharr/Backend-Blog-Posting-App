@@ -62,16 +62,36 @@ const verifyToken = (req, res, next) => {
   }
 };
 
+const checkAuth = (req) => {
+  const token = req.cookies.token;
+  if (!token) return null;
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
+    return null;
+  }
+};
+
 // ======================
 // Public Routes
 // ======================
 app.get("/", (req, res) => {
-  res.render("index");
+  const user = checkAuth(req);
+  if (user) return res.redirect("/home");
+
+  return res.render("authRequired", {
+    title: "Welcome to Relm",
+    message: "Sign in, create an account, or continue as guest",
+  });
 });
 
 // ======================
 // Authentication Routes
 // ======================
+
+app.get("/auth/createAccount", (req, res) => {
+  res.render("index");
+});
 
 app.post("/createUser", upload.single("image"), async (req, res) => {
   const { username, name, email, password, dateOfBirth } = req.body;
@@ -130,7 +150,7 @@ app.post("/verify-email", async (req, res) => {
     sameSite: "lax",
   });
 
-  res.redirect("/profile");
+  res.redirect("/home");
 });
 
 app.get("/createguest", async (req, res) => {
