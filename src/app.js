@@ -89,7 +89,7 @@ app.get("/", (req, res) => {
 // Authentication Routes
 // ======================
 
-app.get("/auth/createAccount", (req, res) => {
+app.get("/auth/createUser", (req, res) => {
   res.render("index");
 });
 
