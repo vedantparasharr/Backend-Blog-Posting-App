@@ -156,7 +156,6 @@ app.post("/verify-email", async (req, res) => {
   }
 
   if (user.otpPurpose === "reset_password") {
-    user.otpPurpose = undefined;
     await user.save();
     return res.redirect(`/auth/reset-password/${user._id}`);
   }
@@ -245,6 +244,8 @@ app.post("/auth/forget", async (req, res) => {
   }
   sendOTPEmail(user).catch(console.error);
   user.otpPurpose = "reset_password";
+  user.otpHash = undefined;
+  user.otpExpires = undefined;
   await user.save();
   res.render("verify", { user: user._id });
 });
@@ -252,6 +253,8 @@ app.post("/auth/forget", async (req, res) => {
 app.get("/auth/reset-password/:user", async (req, res) => {
   const user = await userModel.findById(req.params.user);
   if (!user) return res.status(404).send("User does not exist");
+  if (user.otpPurpose !== "reset_password")
+    return res.status(403).send("Unauthorised");
 
   res.render("reset", { user });
 });
