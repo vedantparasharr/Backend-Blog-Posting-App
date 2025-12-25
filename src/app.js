@@ -36,6 +36,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
+const authRoutes = require("./routes/auth.routes");
+app.use("/auth", authRoutes);
+
 // ======================
 // Authentication Middleware
 // ======================
@@ -89,9 +92,9 @@ app.get("/", (req, res) => {
 // Authentication Routes
 // ======================
 
-app.get("/auth/createUser", (req, res) => {
-  res.render("index");
-});
+// app.get("/auth/createUser", (req, res) => {
+//   res.render("index");
+// });
 
 app.post("/createUser", upload.single("image"), async (req, res) => {
   const { username, name, email, password, dateOfBirth } = req.body;
