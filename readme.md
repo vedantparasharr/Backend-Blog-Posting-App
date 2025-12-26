@@ -4,7 +4,7 @@ A small, opinionated social/community app built with **Node.js**, **Express**, *
 
 ---
 
-## Highlights ⭐📌🎯
+## Highlights ⭐📌🎯.  udhehe
 
 - Email/password authentication with JWT stored in an HTTP-only cookie
 - Guest sign-in (temporary token)
